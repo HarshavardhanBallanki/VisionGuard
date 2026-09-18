@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Processing — VisionGuard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0f12;
+      --surface: #13161c;
+      --surface2: #1a1e27;
+      --border: rgba(255,255,255,0.07);
+      --accent: #c8a96e;
+      --accent-dim: rgba(200,169,110,0.12);
+      --blue: #6ea8c8;
+      --blue-dim: rgba(110,168,200,0.1);
+      --blue-border: rgba(110,168,200,0.25);
+      --done-color: #7ab89e;
+      --done-dim: rgba(122,184,158,0.1);
+      --done-border: rgba(122,184,158,0.25);
+      --text: #e8eaed;
+      --text-muted: #606876;
+      --text-mid: #8c95a4;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ---- NAVBAR ---- */
+    .navbar {
+      background: rgba(13,15,18,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      position: relative;
+      z-index: 100;
+    }
+
+    .navbar-brand {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    /* ---- MAIN ---- */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .processing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .processing-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.6;
+    }
+
+    /* ---- SCANNER ANIMATION ---- */
+    .scanner-wrap {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 1.75rem;
+      position: relative;
+    }
+
+    .scanner-outer {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(200,169,110,0.2);
+      position: absolute;
+      inset: 0;
+      animation: s-outer 3s ease-in-out infinite;
+    }
+
+    .scanner-inner {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(200,169,110,0.4);
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: s-inner 2s ease-in-out infinite reverse;
+    }
+
+    .scanner-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: s-glow 1.5s ease-out infinite;
+    }
+
+    .scanner-sweep {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      position: absolute;
+      inset: 0;
+      background: conic-gradient(rgba(200,169,110,0.15) 0deg, transparent 90deg);
+      animation: s-rotate 2s linear infinite;
+    }
+
+    @keyframes s-outer {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.06); opacity: 1; }
+    }
+
+    @keyframes s-inner {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(0.9); }
+    }
+
+    @keyframes s-glow {
+      0% { box-shadow: 0 0 0 0 rgba(200,169,110,0.5); }
+      70% { box-shadow: 0 0 0 12px rgba(200,169,110,0); }
+      100% { box-shadow: 0 0 0 0 rgba(200,169,110,0); }
+    }
+
+    @keyframes s-rotate {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* ---- TEXT ---- */
+    .processing-title {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    .fname {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+    }
+
+    .warning {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+    }
+
+    /* ---- STEPS LIST ---- */
+    .steps-list {
+      list-style: none;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+
+    .steps-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      transition: color 0.3s;
+    }
+
+    .steps-list li:last-child { border-bottom: none; }
+
+    .steps-list li.active { color: var(--text); }
+    .steps-list li.done   { color: var(--done-color); }
+
+    .dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+
+    li.active .dot {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+      animation: step-pulse 1s ease-in-out infinite;
+    }
+
+    li.done .dot {
+      border-color: var(--done-color);
+      background: var(--done-dim);
+      color: var(--done-color);
+    }
+
+    @keyframes step-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(200,169,110,0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(200,169,110,0); }
+    }
+
+    /* ---- STATUS TICKER ---- */
+    .status-ticker {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      min-height: 1.2em;
+    }
+
+    /* ---- FOOTER ---- */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    footer p {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="navbar-brand" href="/">
+      <div class="brand-dot"></div>
+      VisionGuard
+    </a>
+  </nav>
+
+  <main>
+    <div class="processing-card">
+
+      <div class="scanner-wrap">
+        <div class="scanner-sweep"></div>
+        <div class="scanner-outer"></div>
+        <div class="scanner-inner"></div>
+        <div class="scanner-dot"></div>
+      </div>
+
+      <h2 class="processing-title">Analyzing your file...</h2>
+      <p class="fname">{{ filename }}</p>
+      <p class="warning">Do not close this tab while processing.</p>
+
+      <ul class="steps-list" id="stepsList">
+        <li id="s1"><div class="dot">◉</div>Loading model and opening file</li>
+        <li id="s2"><div class="dot">○</div>Running YOLO frame detection</li>
+        <li id="s3"><div class="dot">○</div>Applying violation logic</li>
+        <li id="s4"><div class="dot">○</div>Annotating output</li>
+        <li id="s5"><div class="dot">○</div>Saving report</li>
+      </ul>
+
+      <p class="status-ticker" id="statusTicker">Initializing detection pipeline...</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>VisionGuard — YOLOv8 + Flask + OpenCV</p>
+  </footer>
+
+  <script>
+    const tickerMessages = [
+      'Loading model and opening file...',
+      'Running YOLO inference on frames...',
+      'Checking bounding box overlaps for violations...',
+      'Drawing annotations and reassembling...',
+      'Writing violation log and generating report...',
+    ];
+
+    const stepEls  = [1,2,3,4,5].map(i => document.getElementById(`s${i}`));
+    const ticker   = document.getElementById('statusTicker');
+
+    function updateSteps(current) {
+      for (let i = 1; i <= 5; i++) {
+        const el   = document.getElementById(`s${i}`);
+        const dot  = el.querySelector('.dot');
+        if (i < current) {
+          el.className = 'done';
+          dot.textContent = '✓';
+        } else if (i === current) {
+          el.className = 'active';
+          dot.textContent = '◉';
+          ticker.textContent = tickerMessages[i - 1];
+        } else {
+          el.className = '';
+          dot.textContent = '○';
+        }
+      }
+    }
+
+    function poll() {
+      fetch('/status').then(r => r.json()).then(data => {
+        updateSteps(data.step);
+        if (data.status === 'done') {
+          ticker.textContent = 'Analysis complete. Redirecting...';
+          window.location.href = '/results';
+        } else if (data.status === 'error') {
+          document.querySelector('.processing-title').textContent = 'Something went wrong.';
+          ticker.textContent = data.error_message || 'Processing failed before completion.';
+          document.querySelector('.scanner-wrap').style.display = 'none';
+        } else {
+          setTimeout(poll, 2000);
+        }
+      }).catch(() => setTimeout(poll, 2000));
+    }
+
+    updateSteps(1);
+    setTimeout(poll, 2000);
+  </script>
+
+</body>
+</html>

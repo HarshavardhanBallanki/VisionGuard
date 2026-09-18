@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VisionGuard AI — Smart Detection System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --surface2: #181c23;
+    --border: rgba(255,255,255,0.07);
+    --gold: #e8c97a;
+    --gold-dim: rgba(232,201,122,0.10);
+    --gold-border: rgba(232,201,122,0.25);
+    --teal: #5ecfbe;
+    --teal-dim: rgba(94,207,190,0.08);
+    --red: #e8756a;
+    --red-dim: rgba(232,117,106,0.10);
+    --text: #f0f2f5;
+    --text-mid: #9aa3b2;
+    --text-muted: #4e5668;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Syne', sans-serif;
+    --body: 'Lora', serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.013) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.013) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── NAVBAR ── */
+  .navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    background: rgba(10,12,15,0.82);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.9rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-brand {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    color: var(--text-mid);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-dot {
+    width: 7px; height: 7px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100%{ opacity:1; transform:scale(1); }
+    50%    { opacity:.35; transform:scale(.65); }
+  }
+  .nav-links { display:flex; gap:2rem; list-style:none; }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.67rem;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+
+  /* ── COVER ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 7rem 2rem 5rem;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+  .cover-bg {
+    position: absolute; inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1800&q=80');
+    background-size: cover;
+    background-position: center 45%;
+    filter: brightness(0.17) saturate(0.4);
+    transform: scale(1.05);
+    animation: slow-zoom 24s ease-in-out infinite alternate;
+    z-index: 0;
+  }
+  @keyframes slow-zoom {
+    from { transform:scale(1.05); }
+    to   { transform:scale(1.11); }
+  }
+  .cover-overlay {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 65% 55% at 50% 85%, rgba(232,201,122,.055) 0%, transparent 70%),
+      linear-gradient(to bottom, rgba(10,12,15,.55) 0%, rgba(10,12,15,.12) 50%, rgba(10,12,15,.94) 100%);
+    z-index: 1;
+  }
+  .cover > *:not(.cover-bg):not(.cover-overlay) { position:relative; z-index:2; }
+
+  /* stagger fade-up */
+  .fu { opacity:0; transform:translateY(22px); animation:fadeUp .85s cubic-bezier(.22,1,.36,1) forwards; }
+  @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+  .d1{animation-delay:.08s} .d2{animation-delay:.22s} .d3{animation-delay:.38s}
+  .d4{animation-delay:.54s} .d5{animation-delay:.70s} .d6{animation-delay:.86s}
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: .15em;
+    color: var(--gold);
+    border: 1px solid var(--gold-border);
+    background: var(--gold-dim);
+    padding: .35em 1.1em;
+    border-radius: 100px;
+    margin-bottom: 1.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge-blink {
+    width:6px; height:6px;
+    background:var(--gold); border-radius:50%;
+    animation: blink 1.2s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .cover-title {
+    font-family: var(--display);
+    font-size: clamp(3.4rem, 10vw, 7.5rem);
+    font-weight: 800;
+    line-height: .92;
+    letter-spacing: -.03em;
+    color: var(--text);
+    margin-bottom: .9rem;
+  }
+  .cover-title span { color: var(--gold); }
+
+  .cover-sub {
+    font-family: var(--body);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text-mid);
+    max-width: 500px;
+    margin: 0 auto 2.25rem;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 2.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2.75rem;
+  }
+  .meta-item { font-family:var(--mono); font-size:.7rem; color:var(--text-muted); letter-spacing:.05em; }
+  .meta-item strong { color:var(--text-mid); display:block; margin-bottom:2px; }
+
+  .cta-row { display:flex; gap:.85rem; justify-content:center; flex-wrap:wrap; }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--gold);
+    color: #0a0c0f;
+    font-family: var(--mono);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: .8rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .3s;
+  }
+  .btn-primary::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%);
+    pointer-events:none;
+  }
+  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 0 30px rgba(232,201,122,.4),0 8px 24px rgba(0,0,0,.5); }
+  .btn-arrow { transition:transform .2s; }
+  .btn-primary:hover .btn-arrow { transform:translateX(4px); }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--text-mid);
+    font-family: var(--mono);
+    font-size: .75rem;
+    letter-spacing: .04em;
+    padding: .8rem 1.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    transition: border-color .2s, color .2s, box-shadow .2s;
+  }
+  .btn-ghost:hover { border-color:var(--gold-border); color:var(--gold); box-shadow:0 0 16px rgba(232,201,122,.08); }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    font-family: var(--mono);
+    font-size: .62rem;
+    color: var(--text-muted);
+    letter-spacing: .12em;
+    animation: bounce 2s ease-in-out infinite;
+    z-index: 2;
+  }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
+
+  /* ── STAT STRIP ── */
+  .stat-strip {
+    position: relative; z-index:2;
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+  }
+  .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); }
+  .stat {
+    padding: 1.75rem 1rem;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right:none; }
+  .stat-val {
+    font-family:var(--mono); font-size:1.85rem; font-weight:500;
+    color:var(--gold); line-height:1; margin-bottom:.3rem;
+  }
+  .stat-label {
+    font-family:var(--mono); font-size:.62rem;
+    letter-spacing:.12em; color:var(--text-muted); text-transform:uppercase;
+  }
+
+  /* ── WRAPPER ── */
+  .wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sec-label {
+    font-family:var(--mono); font-size:.65rem;
+    letter-spacing:.2em; color:var(--gold);
+    text-transform:uppercase; margin-bottom:.5rem;
+  }
+  .sec-title {
+    font-family:var(--display); font-size:2rem; font-weight:700;
+    letter-spacing:-.02em; color:var(--text);
+    margin-bottom:1.5rem; padding-bottom:.75rem;
+    border-bottom:1px solid var(--border);
+  }
+
+  section { margin-bottom:4rem; padding-top:4rem; }
+  p { color:var(--text-mid); margin-bottom:1rem; }
+  p:last-child { margin-bottom:0; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left:3px solid var(--gold); background:var(--gold-dim);
+    border-radius:0 8px 8px 0; padding:1rem 1.25rem; margin:1.5rem 0;
+  }
+  .callout p { color:var(--text); font-size:.92rem; margin:0; }
+  .callout strong { color:var(--gold); }
+
+  /* ── CARD ── */
+  .card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:1.5rem; margin-bottom:1rem;
+    transition:background .2s, border-color .2s;
+    position:relative; overflow:hidden;
+  }
+  .card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+    opacity:0; transition:opacity .3s;
+  }
+  .card:hover { background:var(--surface2); border-color:var(--gold-border); }
+  .card:hover::before { opacity:.5; }
+  .card-title { font-family:var(--display); font-size:.95rem; font-weight:700; color:var(--text); margin-bottom:.4rem; }
+  .card p { font-size:.9rem; margin:0; }
+
+  .cards-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1rem; }
+
+  /* ── FLOW ── */
+  .flow { display:flex; flex-direction:column; gap:0; margin:1.5rem 0; }
+  .flow-step { display:flex; align-items:flex-start; gap:1rem; position:relative; }
+  .flow-step:not(:last-child)::after {
+    content:''; position:absolute; left:16px; top:36px;
+    width:1px; height:calc(100% - 4px);
+    background:linear-gradient(var(--gold-border),transparent);
+  }
+  .flow-num {
+    flex-shrink:0; width:32px; height:32px; border-radius:50%;
+    background:var(--gold-dim); border:1px solid var(--gold-border);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:.72rem; color:var(--gold); margin-top:2px;
+  }
+  .flow-content {
+    flex:1; background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:.9rem 1.1rem; margin-bottom:.75rem;
+  }
+  .flow-content strong {
+    font-family:var(--display); font-size:.9rem; font-weight:700;
+    color:var(--text); display:block; margin-bottom:.2rem;
+  }
+  .flow-content span { font-size:.85rem; color:var(--text-mid); font-family:var(--body); font-style:italic; }
+
+  /* ── ARCH ── */
+  .arch {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:2rem 1.5rem; margin:1.5rem 0;
+    font-family:var(--mono); font-size:.78rem; color:var(--text-mid); overflow-x:auto;
+  }
+  .arch-row { display:flex; align-items:center; justify-content:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap; }
+  .arch-box { border:1px solid var(--gold-border); background:var(--gold-dim); color:var(--gold); border-radius:6px; padding:.35em .75em; white-space:nowrap; }
+  .arch-box.teal { border-color:rgba(94,207,190,.25); background:var(--teal-dim); color:var(--teal); }
+  .arch-box.red  { border-color:rgba(232,117,106,.25); background:var(--red-dim);  color:var(--red); }
+  .arch-box.plain { border-color:var(--border); background:var(--surface2); color:var(--text-mid); }
+  .arch-arrow { color:var(--text-muted); font-size:1rem; }
+
+  /* ── TAGS ── */
+  .tags { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.75rem; }
+  .tag { font-family:var(--mono); font-size:.65rem; letter-spacing:.05em; padding:.2em .7em; border-radius:100px; border:1px solid; }
+  .tag-gold { color:var(--gold); border-color:var(--gold-border); background:var(--gold-dim); }
+  .tag-teal { color:var(--teal); border-color:rgba(94,207,190,.25); background:var(--teal-dim); }
+  .tag-red  { color:var(--red);  border-color:rgba(232,117,106,.25); background:var(--red-dim); }
+
+  .divider { border:none; border-top:1px solid var(--border); margin:0; }
+
+  /* ── SHOWCASE IMAGE ── */
+  .img-card { border-radius:12px; overflow:hidden; border:1px solid var(--border); position:relative; margin:1.5rem 0; }
+  .img-card img { width:100%; height:280px; object-fit:cover; display:block; filter:brightness(.6) saturate(.5); transition:filter .4s; }
+  .img-card:hover img { filter:brightness(.78) saturate(.7); }
+  .img-caption {
+    position:absolute; bottom:.9rem; right:.9rem;
+    background:rgba(10,12,15,.88); backdrop-filter:blur(6px);
+    border:1px solid var(--border); border-radius:6px;
+    padding:.35rem .75rem; font-family:var(--mono); font-size:.6rem;
+    color:var(--gold); letter-spacing:.08em;
+  }
+
+  /* ── TWO COL ── */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; align-items:start; }
+
+  /* ── FINAL CTA ── */
+  .cta-section {
+    position:relative; z-index:2;
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    padding:5rem 2rem; text-align:center; overflow:hidden;
+  }
+  .cta-section::before {
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:600px; height:300px;
+    background:radial-gradient(ellipse,rgba(232,201,122,.06) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .cta-section .sec-label { margin-bottom:.5rem; }
+  .cta-section .cta-title {
+    font-family:var(--display); font-size:2.4rem; font-weight:700;
+    letter-spacing:-.02em; color:var(--text); margin-bottom:.75rem;
+  }
+  .cta-section > p { font-style:italic; max-width:460px; margin:0 auto 2rem; }
+
+  /* ── FOOTER ── */
+  .report-footer {
+    text-align:center; padding:1.75rem 2rem;
+    border-top:1px solid var(--border);
+    position:relative; z-index:1;
+  }
+  .report-footer p { font-family:var(--mono); font-size:.65rem; color:var(--text-muted); margin:0; }
+
+  code { font-family:var(--mono); font-size:.8rem; background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:.15em .45em; color:var(--teal); }
+
+  @media(max-width:640px){
+    .stat-grid { grid-template-columns:1fr 1fr; }
+    .stat:nth-child(2){ border-right:none; }
+    .stat:nth-child(3){ border-top:1px solid var(--border); }
+    .two-col { grid-template-columns:1fr; }
+    .nav-links { display:none; }
+    .navbar { padding:.9rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-dot"></div>
+    VisionGuard
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how-it-works">Pipeline</a></li>
+    <li><a href="#stack">Stack</a></li>
+    <li><a href="/home">Upload</a></li>
+  </ul>
+</nav>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-bg"></div>
+  <div class="cover-overlay"></div>
+
+  <div class="badge fu d1"><div class="badge-blink"></div>YOLOv8 · REAL-TIME DETECTION</div>
+
+  <h1 class="cover-title fu d2">Vision<span>Guard AI</span></h1>
+
+  <p class="cover-sub fu d3">Smart Vehicle &amp; Number Plate Detection System</p>
+
+  <div class="cover-meta fu d4">
+    <div class="meta-item"><strong>AI Model</strong>YOLOv8 (Ultralytics)</div>
+    <div class="meta-item"><strong>OCR</strong>EasyOCR</div>
+    <div class="meta-item"><strong>Backend</strong>Python · Flask</div>
+    <div class="meta-item"><strong>Database</strong>SQLite</div>
+  </div>
+
+  <div class="cta-row fu d5">
+    <a href="/home" class="btn-primary">Get Started <span class="btn-arrow">→</span></a>
+    <a href="#how-it-works" class="btn-ghost">See How It Works</a>
+  </div>
+
+  <div class="scroll-hint fu d6">↓ SCROLL</div>
+</div>
+
+<!-- STAT STRIP -->
+<div class="stat-strip">
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-val">₹1K</div><div class="stat-label">Auto Fine / Violation</div></div>
+    <div class="stat"><div class="stat-val">2</div><div class="stat-label">YOLO AI Models</div></div>
+    <div class="stat"><div class="stat-val">30+</div><div class="stat-label">Demo Accounts</div></div>
+    <div class="stat"><div class="stat-val">5</div><div class="stat-label">Processing Steps</div></div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="wrapper">
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="sec-label">01 — About</div>
+    <h2 class="sec-title">What is VisionGuard?</h2>
+
+    <p>VisionGuard is an <strong style="color:var(--text)">automated traffic enforcement system</strong> that uses AI to detect motorcycle riders who are not wearing helmets — and automatically deducts a fine of ₹1,000 from their registered bank account, without any human intervention.</p>
+
+    <p>Upload a video or image from a traffic camera. The system runs AI detection on every frame, identifies the violating vehicle's number plate using OCR, looks up the owner's account, and processes the fine instantly.</p>
+
+    <div class="callout">
+      <p><strong>One-line pitch:</strong> "VisionGuard sees a rider without a helmet, reads their plate, and automatically deducts ₹1,000 from their account — no human needed."</p>
+    </div>
+
+    <div class="img-card">
+      <img src="https://images.unsplash.com/photo-1449426468159-d96dbf08f19f?w=1200&q=80" alt="Motorcycle on highway at night"/>
+      <div class="img-caption">REAL-TIME DETECTION PIPELINE</div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="sec-label">02 — Features</div>
+    <h2 class="sec-title">Core Capabilities</h2>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title">🎯 YOLOv8 Object Detection</div>
+        <p>Two custom-trained YOLO models detect vehicles, riders, helmets, and number plates across every frame with high-precision bounding boxes.</p>
+        <div class="tags"><span class="tag tag-gold">helmet_model.pt</span><span class="tag tag-teal">plate_model.pt</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏍️ Helmet Violation Logic</div>
+        <p>A violation fires only when a "No-Helmet" bounding box spatially overlaps a "Rider" box (IoU logic) — eliminating false positives from unattended helmets.</p>
+        <div class="tags"><span class="tag tag-red">Violation Logic</span><span class="tag tag-gold">IoU Overlap</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔢 Number Plate OCR</div>
+        <p>EasyOCR reads the plate crop. Raw output is cleaned for common O/0, I/1 confusions and validated against the Indian plate regex format.</p>
+        <div class="tags"><span class="tag tag-teal">EasyOCR</span><span class="tag tag-gold">Regex Validate</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">💳 Automatic Fine Collection</div>
+        <p>trigger.py → bank_engine.py deducts ₹1,000 per confirmed violation. Low-balance accounts get a pending challan instead of a deduction.</p>
+        <div class="tags"><span class="tag tag-gold">bank_engine.py</span><span class="tag tag-red">SQLite</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 CSV Reports</div>
+        <p>Every session generates a downloadable CSV with frame timestamps, violation types, confidence scores, and plate numbers.</p>
+        <div class="tags"><span class="tag tag-teal">Auto-Generated</span><span class="tag tag-gold">Downloadable</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎬 Annotated Output Video</div>
+        <p>Download the processed video with bounding boxes and class labels drawn onto every detected frame — visual evidence for each violation.</p>
+        <div class="tags"><span class="tag tag-teal">OpenCV</span><span class="tag tag-gold">MP4 Output</span></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- PIPELINE -->
+  <section id="how-it-works">
+    <div class="sec-label">03 — Pipeline</div>
+    <h2 class="sec-title">How It Works</h2>
+
+    <p>From upload to fine — the full pipeline runs in a background thread while you watch live progress on screen.</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">01</div>
+        <div class="flow-content">
+          <strong>Upload File</strong>
+          <span>Drop a video (MP4, AVI, MOV, MKV) or images (JPG, PNG) via the upload page. Multiple images can be processed in one batch.</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">02</div>
+        <div class="flow-content">
+          <strong>YOLO Frame Detection</strong>
+          <span>YOLOv8 processes every 5th frame (FRAME_SKIP=5) detecting Bike, Rider, Helmet, No-Helmet, and License Plate classes at the set confidence threshold.</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">03</div>
+        <div class="flow-content">
+          <strong>Violation Logic + OCR</strong>
+          <span>No-Helmet boxes overlapping Rider boxes trigger a violation. The plate region is cropped and passed to EasyOCR. Deduplication groups events within 2 seconds.</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">04</div>
+        <div class="flow-content">
+          <strong>Fine Deduction</strong>
+          <span>trigger.py calls bank_engine.py with the plate number. If balance ≥ ₹1,000 the fine is deducted and a simulated SMS notification is logged to the transactions table.</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">05</div>
+        <div class="flow-content">
+          <strong>Report &amp; Output</strong>
+          <span>Annotated video and CSV report are saved. Results page shows compliance rate, violation count, and all owner details with download links.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture">
+    <div class="sec-label">04 — Architecture</div>
+    <h2 class="sec-title">System Architecture</h2>
+
+    <p>Three clean layers — web frontend, detection engine, and banking backend — connected through Flask routes and a shared SQLite database.</p>
+
+    <div class="arch">
+      <div class="arch-row">
+        <div class="arch-box plain">Browser / User</div>
+        <div class="arch-arrow">⟶</div>
+        <div class="arch-box">Flask (app.py)</div>
+      </div>
+      <div class="arch-row"><div class="arch-arrow">↓</div></div>
+      <div class="arch-row">
+        <div class="arch-box teal">detector.py</div>
+        <div class="arch-arrow">+</div>
+        <div class="arch-box teal">YOLOv8 Models</div>
+        <div class="arch-arrow">+</div>
+        <div class="arch-box teal">EasyOCR</div>
+      </div>
+      <div class="arch-row"><div class="arch-arrow">↓ violation detected</div></div>
+      <div class="arch-row">
+        <div class="arch-box plain">trigger.py</div>
+        <div class="arch-arrow">⟶</div>
+        <div class="arch-box red">bank_engine.py</div>
+        <div class="arch-arrow">⟶</div>
+        <div class="arch-box red">bank_simulation.db</div>
+      </div>
+      <div class="arch-row"><div class="arch-arrow">↓ result</div></div>
+      <div class="arch-row">
+        <div class="arch-box plain">results.html + wallet_dashboard.html</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- STACK -->
+  <section id="stack">
+    <div class="sec-label">05 — Technology</div>
+    <h2 class="sec-title">Technology Stack</h2>
+
+    <div class="two-col">
+      <div>
+        <div class="card">
+          <div class="card-title">🧠 YOLOv8 (Ultralytics)</div>
+          <p>State-of-the-art real-time object detection. Two custom-trained models: one for helmet/rider/bike classes, one for number plate localisation.</p>
+          <div class="tags"><span class="tag tag-gold">helmet_model.pt</span><span class="tag tag-teal">plate_model.pt</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">👁 EasyOCR</div>
+          <p>Reads alphanumeric text from the detected plate crop. Handles noisy or angled plates; output is cleaned with O/0 and I/1 position-aware correction.</p>
+          <div class="tags"><span class="tag tag-teal">gpu=False</span><span class="tag tag-gold">Regex Clean</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🌐 Flask</div>
+          <p>Lightweight Python web framework powering upload handling, background threading, Jinja2 templates, and the <code>/api/violation</code> endpoint.</p>
+          <div class="tags"><span class="tag tag-gold">/api/violation</span><span class="tag tag-teal">threading.Thread</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title">📹 OpenCV (cv2)</div>
+          <p>Frame-by-frame video reading, bounding box annotation drawing, image resizing, and annotated output video assembly.</p>
+          <div class="tags"><span class="tag tag-teal">FRAME_SKIP=5</span><span class="tag tag-gold">MP4 Write</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🗄 SQLite</div>
+          <p>Embedded database — no server needed. Two tables: <code>accounts</code> (owner profiles + balances) and <code>transactions</code> (fine history + SMS log).</p>
+          <div class="tags"><span class="tag tag-red">accounts</span><span class="tag tag-red">transactions</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🐍 Python 3</div>
+          <p>Core language tying every layer together — threading, CSV export, regex validation, MD5 deterministic auto-assignment, and SMS simulation.</p>
+          <div class="tags"><span class="tag tag-gold">threading</span><span class="tag tag-teal">csv · re · hashlib</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- PAGES -->
+  <section id="pages">
+    <div class="sec-label">06 — App Pages</div>
+    <h2 class="sec-title">Pages &amp; UI Flow</h2>
+
+    <div class="card">
+      <div class="card-title">/ — Landing Page (intro.html)</div>
+      <p>This page. Project overview, feature highlights, pipeline walkthrough, and a direct link to begin uploading.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">/home — Upload Page (index.html)</div>
+      <p>Dark-themed upload form. Accepts video (mp4, avi, mov, mkv) or images (jpg, png). Multiple image uploads supported in one batch. Confidence threshold slider included.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">/processing — Live Progress (processing.html)</div>
+      <p>Animated 5-step tracker polling <code>/status</code> every 2 seconds. Auto-redirects to results when detection completes.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">/results — Results Page (results.html)</div>
+      <p>Shows total frames, vehicles, riders, violation count, compliance rate, and a detailed violation table with owner names and balance info. Download buttons for annotated video and CSV.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">/wallet_dashboard — Fine Dashboard</div>
+      <p>Live dashboard showing all collected fines, owner balances before and after deduction, and a running transaction log via <code>/api/violations</code>.</p>
+    </div>
+  </section>
+
+</div>
+
+<!-- FINAL CTA -->
+<div class="cta-section">
+  <div class="sec-label">Ready to Begin?</div>
+  <h2 class="cta-title">Start Detecting Now</h2>
+  <p>Upload your first video or image and receive a full violation analysis report in under a minute.</p>
+  <div class="cta-row">
+    <a href="/home" class="btn-primary">Launch VisionGuard <span class="btn-arrow">→</span></a>
+    <a href="/wallet_dashboard" class="btn-ghost">View Dashboard</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="report-footer">
+  <p>VisionGuard AI &nbsp;|&nbsp; Smart Vehicle &amp; Helmet Detection &nbsp;|&nbsp; Stack: Python · Flask · YOLOv8 · EasyOCR · SQLite · OpenCV</p>
+</div>
+
+</body>
+</html>

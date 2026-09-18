@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wallet Dashboard — VisionGuard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0f12;
+      --surface: #13161c;
+      --surface2: #1a1e27;
+      --border: rgba(255,255,255,0.07);
+      --border-hover: rgba(255,255,255,0.14);
+      --accent: #c8a96e;
+      --accent-dim: rgba(200,169,110,0.12);
+      --accent-dim2: rgba(200,169,110,0.06);
+      --blue: #6ea8c8;
+      --blue-dim: rgba(110,168,200,0.1);
+      --blue-border: rgba(110,168,200,0.25);
+      --red: #c87e6e;
+      --red-dim: rgba(200,126,110,0.12);
+      --red-border: rgba(200,126,110,0.25);
+      --green: #7ab89e;
+      --green-dim: rgba(122,184,158,0.1);
+      --green-border: rgba(122,184,158,0.25);
+      --orange: #c89e6e;
+      --orange-dim: rgba(200,158,110,0.12);
+      --text: #e8eaed;
+      --text-muted: #606876;
+      --text-mid: #8c95a4;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ---- NAVBAR ---- */
+    .navbar {
+      background: rgba(13,15,18,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar-brand {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    .nav-status {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      background: var(--green-dim);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-status::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      background: var(--green);
+      border-radius: 50%;
+    }
+
+    /* ---- PAGE WRAP ---- */
+    .page-wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ---- HEADER ---- */
+    .page-eyebrow {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .page-title {
+      font-family: var(--mono);
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -1px;
+      margin-bottom: 0.3rem;
+    }
+
+    .page-title span { color: var(--accent); }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-family: var(--mono);
+    }
+
+    .page-meta strong { color: var(--accent); font-weight: 400; }
+
+    /* ---- STAT GRID ---- */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat {
+      background: var(--surface);
+      padding: 1.25rem 1rem;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    .stat:hover { background: var(--surface2); }
+
+    .stat::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--stat-color, var(--border));
+    }
+
+    .stat.blue   { --stat-color: var(--blue); }
+    .stat.orange { --stat-color: var(--orange); }
+    .stat.red    { --stat-color: var(--red); }
+    .stat.green  { --stat-color: var(--green); }
+
+    .stat .val {
+      font-family: var(--mono);
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+
+    .stat.blue   .val { color: var(--blue); }
+    .stat.orange .val { color: var(--orange); }
+    .stat.red    .val { color: var(--red); }
+    .stat.green  .val { color: var(--green); }
+
+    .stat .lbl {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* ---- SECTION ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.3;
+    }
+
+    .section-title {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .section-title .right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ---- TABS ---- */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 1.25rem;
+    }
+
+    .tab-btn {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .tab-btn:hover:not(.active) {
+      border-color: var(--border-hover);
+      color: var(--text-mid);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ---- SEARCH ---- */
+    .search-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .search-input {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 6px 12px;
+      outline: none;
+      width: 200px;
+      transition: border-color 0.2s;
+    }
+
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus { border-color: rgba(200,169,110,0.35); }
+
+    /* ---- TABLE ---- */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    thead tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-mid);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tbody tr {
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+
+    tbody tr:hover td { background: var(--surface2); }
+
+    /* ---- BADGES ---- */
+    .badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-violation {
+      background: var(--red-dim);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    .badge-ok {
+      background: var(--green-dim);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+
+    .plate {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      background: var(--blue-dim);
+      color: var(--blue);
+      border: 1px solid var(--blue-border);
+      padding: 3px 9px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .vcount-badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      background: var(--red-dim);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ---- AMOUNT CELLS ---- */
+    .amt {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .amt-debit  { color: var(--red); }
+    .amt-credit { color: var(--green); }
+    .amt-bal    { color: var(--text); }
+
+    /* ---- CONF BAR ---- */
+    .conf-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .conf-bar {
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      width: 60px;
+      overflow: hidden;
+    }
+
+    .conf-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .conf-val {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* ---- OWNER GRID ---- */
+    .owner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .owner-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .owner-card:hover {
+      border-color: var(--border-hover);
+      background: #1f2330;
+    }
+
+    .owner-card.violated {
+      border-left: 2px solid var(--red);
+    }
+
+    .owner-card .oc-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .owner-card .oc-plate {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--blue);
+      margin-bottom: 8px;
+    }
+
+    .owner-card .oc-bal {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .owner-card .oc-bal strong {
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    .owner-card .oc-flag {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--red);
+      margin-top: 6px;
+    }
+
+    /* ---- MODAL ---- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-hover);
+      border-radius: var(--radius);
+      padding: 2rem;
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      animation: modal-in 0.2s ease;
+    }
+
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.6;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .modal-sub {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      transition: color 0.2s;
+      flex-shrink: 0;
+    }
+
+    .modal-close:hover { color: var(--text); }
+
+    .modal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-row:last-of-type { border-bottom: none; }
+
+    .modal-key {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .modal-val {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+
+    /* ---- DEBIT FLASH ---- */
+    .debit-flash {
+      margin-top: 1.25rem;
+      background: var(--red-dim);
+      border: 1px solid var(--red-border);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .debit-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(200,126,110,0.25);
+      border: 1px solid var(--red-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+    }
+
+    .debit-amount {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--red);
+      margin-bottom: 3px;
+    }
+
+    .debit-desc {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ---- SIM BTN ---- */
+    .btn-sim {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--red-dim);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-sim:hover {
+      background: rgba(200,126,110,0.2);
+      transform: translateY(-1px);
+    }
+
+    /* ---- BUTTONS ---- */
+    .btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 0.7rem 1.4rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--border-hover);
+    }
+
+    /* ---- EMPTY STATE ---- */
+    .empty {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ---- ANIMATIONS ---- */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(14px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .delay-1 { animation-delay: 0.08s; }
+    .delay-2 { animation-delay: 0.18s; }
+    .delay-3 { animation-delay: 0.28s; }
+    .delay-4 { animation-delay: 0.38s; }
+
+    /* ---- FOOTER ---- */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    footer p {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 600px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .stat .val { font-size: 1.4rem; }
+      .page-title { font-size: 1.3rem; }
+      .navbar { padding: 0.9rem 1rem; }
+      .owner-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a class="navbar-brand" href="/">
+      <div class="brand-dot"></div>
+      VisionGuard
+    </a>
+    <span class="nav-status">Wallet DB Live</span>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- HEADER -->
+    <p class="page-eyebrow fade-up">// Wallet Database</p>
+    <h1 class="page-title fade-up delay-1">Fine <span>Deduction</span> Dashboard</h1>
+    <p class="page-meta fade-up delay-1">
+      Registered vehicles · Real-time fine deduction · Transaction log
+    </p>
+
+    <!-- STAT CARDS -->
+    <div class="stats fade-up delay-2" id="statGrid">
+      <div class="stat blue">
+        <div class="val" id="s-registered">28</div>
+        <div class="lbl">Registered Vehicles</div>
+      </div>
+      <div class="stat red">
+        <div class="val" id="s-violations">0</div>
+        <div class="lbl">Violations Issued</div>
+      </div>
+      <div class="stat orange">
+        <div class="val" id="s-fines">₹0</div>
+        <div class="lbl">Total Fines Collected</div>
+      </div>
+      <div class="stat green">
+        <div class="val" id="s-compliant">28</div>
+        <div class="lbl">Compliant Vehicles</div>
+      </div>
+    </div>
+
+    <!-- MAIN SECTION: TABS -->
+    <div class="section fade-up delay-3">
+      <div class="section-title">
+        <div class="tab-bar" style="margin-bottom:0; border-bottom:none;">
+          <button class="tab-btn active" onclick="switchTab('violations', this)">// Transaction Log</button>
+          <button class="tab-btn" onclick="switchTab('owners', this)">// Registered Vehicles</button>
+        </div>
+        <div class="right">
+          <span class="vcount-badge" id="violationBadge" style="display:none">0 event(s)</span>
+          <button class="btn-sim" onclick="simulateViolation()">+ Simulate Fine</button>
+        </div>
+      </div>
+
+      <!-- TAB: VIOLATIONS LOG -->
+      <div class="tab-panel active" id="tab-violations">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:1rem;">
+          <input class="search-input" type="text" placeholder="Search plate or name..."
+                 oninput="filterViolations(this.value)" id="v-search">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Plate</th>
+                <th>Owner</th>
+                <th>Violation</th>
+                <th>Fine</th>
+                <th>Prev Balance</th>
+                <th>New Balance</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="vtable"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="v-empty">No violations recorded yet — system clear.</div>
+      </div>
+
+      <!-- TAB: REGISTERED OWNERS -->
+      <div class="tab-panel" id="tab-owners">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:1rem;">
+          <input class="search-input" type="text" placeholder="Search owner or plate..."
+                 oninput="filterOwners(this.value)" id="o-search">
+        </div>
+        <div class="owner-grid" id="ownerGrid"></div>
+        <div class="empty" id="o-empty" style="display:none">No results found.</div>
+      </div>
+    </div>
+
+    <!-- BACK BUTTON -->
+    <div class="btns fade-up delay-4">
+      <a href="/" class="btn btn-ghost">← Back to Home</a>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>VisionGuard — Intelligent Traffic Monitoring</p>
+    <p>YOLOv8 + Flask + OpenCV + SQLite</p>
+  </footer>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modalTitle">Transaction Detail</div>
+          <div class="modal-sub" id="modalSub"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    /* =====================================================================
+       DATA LAYER — mirrors database.py seed exactly
+    ===================================================================== */
+    const FINE = 1000;
+
+    const NAMES = [
+      "Aarav Sharma","Vivaan Patel","Aditya Reddy","Vihaan Nair",
+      "Arjun Mehta","Sai Krishna","Rohan Verma","Karthik Iyer",
+      "Priya Sundar","Ananya Bose","Divya Pillai","Meera Joshi",
+      "Kavya Rao","Sneha Kulkarni","Pooja Tiwari","Lakshmi Menon",
+      "Ravi Shankar","Suresh Babu","Vijay Kumar","Ramesh Gupta",
+      "Harsha Vardhan","Deepak Nair","Ajay Singh","Rahul Mishra",
+      "Amit Yadav","Nikhil Desai","Sachin More","Vishal Patil"
+    ];
+
+    const PLATES = [
+      "TN05AT7024","MH12AB1234","DL8CAB4567","KA03MJ7890",
+      "AP09CF2345","TS07EF8901","GJ01AA9999","RJ14BX3210",
+      "UP32CK5678","WB06AD1122","PB10CB4321","HR26BR9876",
+      "MP09HF1357","OD02GH2468","TN22RJ3579","KL07PQ8642",
+      "MH43CD7531","DL4CAF9864","GJ05BC1597","KA51MM3684",
+      "AP28EG7412","TS09HJ5863","RJ01UA2749","UP80AB8531",
+      "WB23CD4862","PB65AE9173","HR55BC6284","MP20CF3957"
+    ];
+
+    function seededRand(seed) {
+      let s = seed;
+      return function() {
+        s = (s * 16807 + 0) % 2147483647;
+        return (s - 1) / 2147483646;
+      };
+    }
+
+    const rng = seededRand(42);
+    const owners = {};
+    PLATES.forEach((p, i) => {
+      const balance = Math.round(rng() * (25000 - 3000) + 3000);
+      owners[p] = {
+        name: NAMES[i % NAMES.length],
+        plate: p,
+        balance: balance,
+        originalBalance: balance
+      };
+    });
+
+    const violations = [];
+    let vidCount = 0;
+
+    /* =====================================================================
+       UTILS
+    ===================================================================== */
+    function fmt(n) {
+      return '₹' + Math.round(n).toLocaleString('en-IN');
+    }
+
+    function ts() {
+      return new Date().toLocaleTimeString('en-IN', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+      });
+    }
+
+    /* =====================================================================
+       STATS
+    ===================================================================== */
+    function renderStats() {
+      const total = Object.keys(owners).length;
+      const fined = new Set(violations.map(v => v.plate)).size;
+      const totalFine = violations.reduce((s, v) => s + v.fine, 0);
+      document.getElementById('s-registered').textContent = total;
+      document.getElementById('s-violations').textContent = violations.length;
+      document.getElementById('s-fines').textContent = fmt(totalFine);
+      document.getElementById('s-compliant').textContent = total - fined;
+
+      const badge = document.getElementById('violationBadge');
+      if (violations.length > 0) {
+        badge.style.display = '';
+        badge.textContent = violations.length + ' event(s)';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    /* =====================================================================
+       VIOLATIONS TABLE
+    ===================================================================== */
+    function renderViolations(filter = '') {
+      const tbody = document.getElementById('vtable');
+      const empty = document.getElementById('v-empty');
+      const q = filter.toUpperCase();
+      const list = q
+        ? violations.filter(v => v.plate.includes(q) || v.name.toUpperCase().includes(q))
+        : violations;
+
+      if (!list.length) {
+        tbody.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      tbody.innerHTML = [...list].reverse().map(v => `
+        <tr onclick="openViolationModal('${v.id}')">
+          <td><span class="plate">${v.plate}</span></td>
+          <td style="color:var(--text)">${v.name}</td>
+          <td><span class="badge badge-violation">No Helmet</span></td>
+          <td class="amt amt-debit">−${fmt(v.fine)}</td>
+          <td class="amt">${fmt(v.prev)}</td>
+          <td class="amt amt-credit">${fmt(v.next)}</td>
+          <td style="font-family:var(--mono); font-size:0.7rem; color:var(--text-muted)">${v.time}</td>
+        </tr>
+      `).join('');
+    }
+
+    function filterViolations(val) { renderViolations(val); }
+
+    /* =====================================================================
+       OWNER GRID
+    ===================================================================== */
+    function renderOwners(filter = '') {
+      const grid = document.getElementById('ownerGrid');
+      const empty = document.getElementById('o-empty');
+      const q = filter.toUpperCase();
+      const violatedPlates = new Set(violations.map(v => v.plate));
+
+      const list = Object.values(owners).filter(o =>
+        !q || o.name.toUpperCase().includes(q) || o.plate.includes(q)
+      );
+
+      if (!list.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
+      empty.style.display = 'none';
+
+      grid.innerHTML = list.map(o => `
+        <div class="owner-card ${violatedPlates.has(o.plate) ? 'violated' : ''}"
+             onclick="openOwnerModal('${o.plate}')">
+          <div class="oc-name">${o.name}</div>
+          <div class="oc-plate">${o.plate}</div>
+          <div class="oc-bal">Balance: <strong>${fmt(o.balance)}</strong></div>
+          ${violatedPlates.has(o.plate)
+            ? `<div class="oc-flag">⚠ Fine deducted</div>`
+            : ''}
+        </div>
+      `).join('');
+    }
+
+    function filterOwners(val) { renderOwners(val); }
+
+    /* =====================================================================
+       CORE: ADD VIOLATION
+    ===================================================================== */
+    function addViolation(plate) {
+      const owner = owners[plate];
+      if (!owner) return;
+      const prev = owner.balance;
+      const next = Math.max(0, prev - FINE);
+      owner.balance = next;
+      vidCount++;
+      const v = {
+        id: 'v' + vidCount, plate, name: owner.name,
+        fine: FINE, prev, next, time: ts()
+      };
+      violations.push(v);
+      renderStats();
+      renderViolations(document.getElementById('v-search').value);
+      renderOwners(document.getElementById('o-search').value);
+      openViolationModal(v.id);
+    }
+
+    function simulateViolation() {
+      const pick = PLATES[Math.floor(Math.random() * PLATES.length)];
+      addViolation(pick);
+    }
+
+    /* =====================================================================
+       MODALS
+    ===================================================================== */
+    function openViolationModal(id) {
+      const v = violations.find(x => x.id === id);
+      if (!v) return;
+      document.getElementById('modalTitle').textContent = 'Transaction Detail';
+      document.getElementById('modalSub').textContent = v.plate + ' · ' + v.time;
+      document.getElementById('modalBody').innerHTML = `
+        <div class="modal-row">
+          <span class="modal-key">Owner Name</span>
+          <span class="modal-val">${v.name}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">Number Plate</span>
+          <span class="modal-val"><span class="plate">${v.plate}</span></span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">Violation Type</span>
+          <span class="modal-val"><span class="badge badge-violation">No Helmet</span></span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">Previous Balance</span>
+          <span class="modal-val amt">${fmt(v.prev)}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">Fine Amount</span>
+          <span class="modal-val amt amt-debit">−${fmt(v.fine)}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">New Balance</span>
+          <span class="modal-val amt amt-credit">${fmt(v.next)}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">Timestamp</span>
+          <span class="modal-val">${v.time}</span>
+        </div>
+        <div class="debit-flash">
+          <div class="debit-icon">↓</div>
+          <div class="debit-body">
+            <div class="debit-amount">₹${v.fine.toLocaleString('en-IN')} Debited</div>
+            <div class="debit-desc">
+              Challan issued · No Helmet violation<br>
+              Transaction processed by VisionGuard
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function openOwnerModal(plate) {
+      const o = owners[plate];
+      const oviol = violations.filter(v => v.plate === plate);
+      const totalFined = oviol.reduce((s, v) => s + v.fine, 0);
+      document.getElementById('modalTitle').textContent = o.name;
+      document.getElementById('modalSub').textContent = plate;
+      document.getElementById('modalBody').innerHTML = `
+        <div class="modal-row">
+          <span class="modal-key">Number Plate</span>
+          <span class="modal-val"><span class="plate">${plate}</span></span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">Original Balance</span>
+          <span class="modal-val amt">${fmt(o.originalBalance)}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">Total Fines Paid</span>
+          <span class="modal-val amt amt-debit">${totalFined > 0 ? '−' + fmt(totalFined) : '₹0'}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">Current Balance</span>
+          <span class="modal-val amt amt-credit">${fmt(o.balance)}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-key">Violations</span>
+          <span class="modal-val">${oviol.length}</span>
+        </div>
+        ${oviol.length ? `
+          <div style="margin-top:1rem; font-family:var(--mono); font-size:0.62rem; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.5rem;">
+            Violation History
+          </div>
+          ${oviol.map(v => `
+            <div class="modal-row">
+              <span class="modal-key">${v.time}</span>
+              <span class="modal-val amt amt-debit">−${fmt(v.fine)}</span>
+            </div>
+          `).join('')}
+        ` : `
+          <div style="margin-top:1rem; font-family:var(--mono); font-size:0.75rem; color:var(--green);">
+            ✓ No violations on record
+          </div>
+        `}
+      `;
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeModal();
+    }
+
+    /* =====================================================================
+       TABS
+    ===================================================================== */
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-violations').classList.toggle('active', name === 'violations');
+      document.getElementById('tab-owners').classList.toggle('active', name === 'owners');
+    }
+
+    /* =====================================================================
+       LIVE POLL — fetch real violations from Flask backend every 2 s
+    ===================================================================== */
+    let _seenIds = new Set();
+
+    async function fetchViolations() {
+      try {
+        const res  = await fetch('/api/violations');
+        const data = await res.json();
+
+        // Merge backend owners into local owners map (they may be new plates)
+        (data.owners || []).forEach(o => {
+          if (!owners[o.plate]) {
+            owners[o.plate] = {
+              name: o.name, plate: o.plate,
+              balance: o.balance, originalBalance: o.originalBalance
+            };
+          } else {
+            // keep balance in sync
+            owners[o.plate].balance = o.balance;
+          }
+        });
+
+        // Add any violations we haven't seen yet
+        (data.violations || []).forEach(v => {
+          if (_seenIds.has(v.id)) return;
+          _seenIds.add(v.id);
+          // Sync owner balance to what backend says
+          if (owners[v.plate]) owners[v.plate].balance = v.next;
+          vidCount++;
+          violations.push({
+            id: v.id, plate: v.plate, name: v.name,
+            fine: v.fine, prev: v.prev, next: v.next, time: v.time
+          });
+        });
+
+        renderStats();
+        renderViolations(document.getElementById('v-search').value);
+        renderOwners(document.getElementById('o-search').value);
+      } catch (e) {
+        // backend not reachable yet — silently retry
+      }
+    }
+
+    // Initial render with whatever is already registered
+    renderStats();
+    renderViolations();
+    renderOwners();
+
+    // Poll every 2 seconds for new real detections
+    fetchViolations();
+    setInterval(fetchViolations, 2000);
+  </script>
+
+</body>
+</html>

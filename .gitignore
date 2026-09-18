@@ -1,0 +1,27 @@
+# Python environments and bytecode
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local configuration and databases
+.env
+*.db
+*.sqlite3
+
+# Downloaded ML weights and model artifacts (store/retrieve separately)
+model/
+*.pt
+*.pth
+*.onnx
+
+# User uploads and generated detection artifacts
+static/uploads/
+static/outputs/
+static/reports/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

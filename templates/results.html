@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Results — VisionGuard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0f12;
+      --surface: #13161c;
+      --surface2: #1a1e27;
+      --border: rgba(255,255,255,0.07);
+      --border-hover: rgba(255,255,255,0.14);
+      --accent: #c8a96e;
+      --accent-dim: rgba(200,169,110,0.12);
+      --accent-dim2: rgba(200,169,110,0.06);
+      --blue: #6ea8c8;
+      --blue-dim: rgba(110,168,200,0.1);
+      --blue-border: rgba(110,168,200,0.25);
+      --red: #c87e6e;
+      --red-dim: rgba(200,126,110,0.12);
+      --red-border: rgba(200,126,110,0.25);
+      --green: #7ab89e;
+      --green-dim: rgba(122,184,158,0.1);
+      --green-border: rgba(122,184,158,0.25);
+      --orange: #c89e6e;
+      --orange-dim: rgba(200,158,110,0.12);
+      --text: #e8eaed;
+      --text-muted: #606876;
+      --text-mid: #8c95a4;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ---- NAVBAR ---- */
+    .navbar {
+      background: rgba(13,15,18,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar-brand {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .nav-status {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      background: var(--green-dim);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-status::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      background: var(--green);
+      border-radius: 50%;
+    }
+
+    /* ---- PAGE WRAP ---- */
+    .page-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ---- HEADER ---- */
+    .page-eyebrow {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .page-title {
+      font-family: var(--mono);
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -1px;
+      margin-bottom: 0.3rem;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-family: var(--mono);
+    }
+
+    .page-meta strong { color: var(--accent); font-weight: 400; }
+
+    /* ---- STAT GRID ---- */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat {
+      background: var(--surface);
+      padding: 1.25rem 1rem;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    .stat:hover { background: var(--surface2); }
+
+    .stat::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--stat-color, var(--border));
+    }
+
+    .stat.blue   { --stat-color: var(--blue); }
+    .stat.orange { --stat-color: var(--orange); }
+    .stat.red    { --stat-color: var(--red); }
+    .stat.green  { --stat-color: var(--green); }
+
+    .stat .val {
+      font-family: var(--mono);
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+
+    .stat.blue   .val { color: var(--blue); }
+    .stat.orange .val { color: var(--orange); }
+    .stat.red    .val { color: var(--red); }
+    .stat.green  .val { color: var(--green); }
+
+    .stat .lbl {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* ---- SECTION ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+
+    .section-title {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* ---- MEDIA ---- */
+    video, .output-img {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      display: block;
+      background: #000;
+    }
+
+    .output-img { margin-bottom: 0.75rem; }
+
+    .media-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      font-family: var(--mono);
+    }
+
+    .legend {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.75rem;
+      font-size: 0.78rem;
+      color: var(--text-mid);
+      flex-wrap: wrap;
+    }
+
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend span::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    .leg-green::before { background: var(--green); }
+    .leg-red::before   { background: var(--red); }
+
+    /* ---- HEATMAP ---- */
+    .heatmap-wrap img {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      display: block;
+    }
+
+    .heatmap-scale {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 0.75rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    .heatmap-scale .gradient {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(to right, #000080, #0000ff, #00ffff, #ffff00, #ff0000);
+      opacity: 0.7;
+    }
+
+    /* ---- BAR CHART ---- */
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    .bar-label {
+      width: 44px;
+      text-align: right;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+
+    .bar-track {
+      flex: 1;
+      background: var(--surface2);
+      border-radius: 3px;
+      height: 18px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--red);
+      opacity: 0.7;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      min-width: 28px;
+    }
+
+    /* ---- TABLE ---- */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    th {
+      background: var(--surface2);
+      text-align: left;
+      padding: 0.7rem 0.9rem;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 400;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.65rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-mid);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    td:first-child {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      background: var(--red-dim);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .plate {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--blue);
+      background: var(--blue-dim);
+      border: 1px solid var(--blue-border);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .empty {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 1.5rem 0;
+      text-align: center;
+      font-family: var(--mono);
+    }
+
+    .vcount-badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      background: var(--red-dim);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+      padding: 2px 10px;
+      border-radius: 20px;
+    }
+
+    /* ---- CONFIDENCE BAR ---- */
+    .conf-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .conf-bar {
+      height: 3px;
+      background: var(--surface2);
+      border-radius: 2px;
+      width: 60px;
+      overflow: hidden;
+    }
+
+    .conf-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .conf-val {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* ---- FINE STATUS BADGES ---- */
+    .fine-paid {
+      background: var(--green-dim);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .fine-pending {
+      background: var(--orange-dim);
+      color: var(--orange);
+      border: 1px solid rgba(200,158,110,0.3);
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .fine-na {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-family: var(--mono);
+    }
+    .btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 0.7rem 1.4rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border: 1px solid var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: #d9b97e;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border-hover);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface2);
+      border-color: var(--border-hover);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--border-hover);
+    }
+
+    /* ---- FOOTER ---- */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    footer p {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* ---- ANIMATIONS ---- */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(14px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .delay-1 { animation-delay: 0.08s; }
+    .delay-2 { animation-delay: 0.18s; }
+    .delay-3 { animation-delay: 0.28s; }
+    .delay-4 { animation-delay: 0.38s; }
+
+    @media (max-width: 600px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .stat .val { font-size: 1.4rem; }
+      .page-title { font-size: 1.3rem; }
+      .navbar { padding: 0.9rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a class="navbar-brand" href="/">
+      <div class="brand-dot"></div>
+      VisionGuard
+    </a>
+    <span class="nav-status">Analysis Complete</span>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- HEADER -->
+    <p class="page-eyebrow fade-up">// Detection Results</p>
+    <h1 class="page-title fade-up delay-1">Violation Report</h1>
+    <p class="page-meta fade-up delay-1">File: <strong>{{ filename }}</strong></p>
+
+    <!-- STAT CARDS -->
+    <div class="stats fade-up delay-2">
+      <div class="stat blue">
+        <div class="val">{{ total_frames }}</div>
+        <div class="lbl">Frames Analyzed</div>
+      </div>
+      <div class="stat orange">
+        <div class="val">{{ total_vehicles }}</div>
+        <div class="lbl">Vehicles Detected</div>
+      </div>
+      <div class="stat orange">
+        <div class="val">{{ total_riders }}</div>
+        <div class="lbl">Riders Detected</div>
+      </div>
+      <div class="stat red">
+        <div class="val">{{ violation_count }}</div>
+        <div class="lbl">Violations Found</div>
+      </div>
+      <div class="stat {% if compliance_rate >= 80 %}green{% else %}red{% endif %}">
+        <div class="val">{{ compliance_rate }}%</div>
+        <div class="lbl">Compliance Rate</div>
+      </div>
+    </div>
+
+    <!-- ANNOTATED OUTPUT -->
+    <div class="section fade-up delay-2">
+      <div class="section-title">// Annotated Output</div>
+
+      {% if file_is_image %}
+        {% for f in output_files %}
+          <img class="output-img"
+               src="{{ url_for('static', filename='outputs/' + f) }}"
+               alt="Annotated"/>
+        {% endfor %}
+      {% else %}
+        <video id="annotated-video" controls preload="metadata" playsinline
+               style="width:100%; border-radius:var(--radius-sm); background:#000; max-height:520px;">
+          <source src="{{ url_for('stream_video', filename=output_file) }}" type="video/mp4">
+          Your browser does not support HTML5 video.
+        </video>
+        <p class="media-note" id="video-note">
+          Loading video&hellip; if it doesn&rsquo;t appear,
+          <a href="{{ url_for('download_video') }}" style="color:var(--accent);">download it</a>
+          and open with VLC.
+        </p>
+        <script>
+          (function(){
+            var vid  = document.getElementById('annotated-video');
+            var note = document.getElementById('video-note');
+            vid.addEventListener('canplay', function(){ note.style.display = 'none'; });
+            vid.addEventListener('error',   function(){
+              note.innerHTML = '&#9888; Browser cannot play this format. '
+                + '<a href="{{ url_for("download_video") }}" style="color:var(--accent);">Download the video</a>'
+                + ' and open with VLC.';
+            });
+          })();
+        </script>
+      {% endif %}
+
+      <div class="legend">
+        <span class="leg-green">Helmet detected (safe)</span>
+        <span class="leg-red">No helmet (violation)</span>
+      </div>
+    </div>
+
+    <!-- VIOLATION HEATMAP -->
+    {% if heatmap_file %}
+    <div class="section fade-up delay-3">
+      <div class="section-title">// Violation Heatmap</div>
+      <div class="heatmap-wrap">
+        <img src="{{ url_for('static', filename='outputs/' + heatmap_file) }}"
+             alt="Violation heatmap"/>
+      </div>
+      <div class="heatmap-scale">
+        <span>Low</span>
+        <div class="gradient"></div>
+        <span>High</span>
+      </div>
+      <p class="media-note" style="margin-top:0.75rem;">
+        Hotspots show where no-helmet violations are spatially concentrated.
+        Red/yellow zones indicate high-density areas — useful for identifying enforcement priority locations.
+      </p>
+    </div>
+    {% endif %}
+
+    <!-- VIOLATIONS BY MINUTE -->
+    {% if by_minute and by_minute | length > 1 %}
+    <div class="section fade-up delay-3">
+      <div class="section-title">// Violations by Minute</div>
+      {% set max_count = by_minute | map(attribute='count') | max %}
+      {% for m in by_minute %}
+      {% set bar_width = ((m.count * 100 / max_count) | round | int) if max_count else 0 %}
+      <div class="bar-row">
+        <div class="bar-label">{{ m.minute }}</div>
+        <div class="bar-track">
+          <div class="bar-fill" data-width="{{ bar_width }}">
+            {{ m.count }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- VIOLATION LOG -->
+    <div class="section fade-up delay-4">
+      <div class="section-title">
+        <span>// Violation Log</span>
+        {% if violations %}
+          <span class="vcount-badge">{{ violation_count }} event(s)</span>
+        {% endif %}
+      </div>
+
+      {% if violations %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {% if violations[0].source is defined %}<th>Source</th>{% endif %}
+              <th>Frame</th>
+              <th>Timestamp</th>
+              <th>Type</th>
+              <th>Confidence</th>
+              <th>Plate</th>
+              <th>Owner</th>
+              <th>Fine</th>
+              <th>Status</th>
+              <th>Bal. After</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in violations %}
+            <tr>
+              {% if v.source is defined %}
+                <td style="font-size:0.72rem; color:var(--text-muted);">{{ v.source }}</td>
+              {% endif %}
+              <td>#{{ v.frame }}</td>
+              <td>{{ v.timestamp }}</td>
+              <td><span class="badge">{{ v.type }}</span></td>
+              <td>
+                <div class="conf-wrap">
+                  <div class="conf-bar">
+                    <div class="conf-fill" data-width="{{ (v.confidence * 100) | round | int }}"></div>
+                  </div>
+                  <span class="conf-val">{{ (v.confidence * 100) | round(1) }}%</span>
+                </div>
+              </td>
+              <td>
+                {% if v.plate and v.plate not in ('N/A', 'Not detected', '') %}
+                  <span class="plate">{{ v.plate }}</span>
+                {% else %}
+                  <span style="color:var(--text-muted); font-size:0.8rem;">—</span>
+                {% endif %}
+              </td>
+              <td style="font-size:0.78rem; color:var(--text);">
+                {{ v.owner_name if v.owner_name and v.owner_name != '—' else '—' }}
+              </td>
+              <td style="font-family:var(--mono); font-size:0.72rem; color:var(--red);">
+                {% if v.fine_amount %}₹{{ v.fine_amount }}{% else %}—{% endif %}
+              </td>
+              <td>
+                {% if v.fine_status == 'paid' %}
+                  <span class="fine-paid">✓ PAID</span>
+                {% elif v.fine_status == 'low_balance' %}
+                  <span class="fine-pending">⚠ PENDING</span>
+                {% else %}
+                  <span class="fine-na">—</span>
+                {% endif %}
+              </td>
+              <td style="font-family:var(--mono); font-size:0.72rem; color:var(--text-mid);">
+                {% if v.remaining_balance and v.remaining_balance != '—' %}
+                  ₹{{ v.remaining_balance }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="empty">✓ No violations detected</p>
+      {% endif %}
+    </div>
+
+    <!-- BUTTONS -->
+    <div class="btns fade-up delay-4">
+      <a href="{{ url_for('download_video') }}" class="btn btn-primary" download>
+        ↓ DOWNLOAD {% if file_is_image %}IMAGE{% else %}VIDEO{% endif %}
+      </a>
+      <a href="{{ url_for('download_report') }}" class="btn btn-secondary" download>
+        ↓ DOWNLOAD CSV
+      </a>
+      <a href="{{ url_for('wallet_dashboard') }}" class="btn btn-secondary">
+        ₹ WALLET DASHBOARD
+      </a>
+      <a href="{{ url_for('index') }}" class="btn btn-ghost">
+        ← ANALYZE ANOTHER
+      </a>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>VisionGuard — Intelligent Traffic Monitoring</p>
+    <p>YOLOv8 + Flask + OpenCV</p>
+  </footer>
+
+  <script>
+    /* Apply data-width values — avoids Jinja-in-CSS linter errors */
+    document.querySelectorAll('[data-width]').forEach(function(el) {
+      el.style.width = el.getAttribute('data-width') + '%';
+    });
+  </script>
+</body>
+</html>
